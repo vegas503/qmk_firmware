@@ -1,1 +1,1 @@
-SRC += taphold.c
+SRC += taphold.c smoothled.c

@@ -3,6 +3,7 @@
 
 #include QMK_KEYBOARD_H
 #include "taphold.h"
+#include "smoothled.h"
 
 #define _MAIN 0
 #define ALPHA 1
@@ -85,64 +86,23 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 // clang-format on
 
-// static bool alpha_pressed = false;
-// static bool beta_pressed = false;
-
-uint8_t current_layer = 0;
-uint8_t last_layer    = 255;
-
-void update_rgb(void) {
-    // uint8_t current_layer = get_highest_layer(state);
-    if (current_layer != last_layer) {
-        last_layer = current_layer;
-        switch (current_layer) {
-            case _MAIN:
-                // rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
-                rgblight_setrgb(0x40, 0x20, 0xFF);
-                break;
-            case ALPHA:
-                // rgblight_mode_noeeprom(RGBLIGHT_MODE_KNIGHT);
-                rgblight_setrgb(0xFF, 0x00, 0x10);
-                break;
-            case BETA:
-                // rgblight_mode_noeeprom(RGBLIGHT_MODE_KNIGHT);
-                rgblight_setrgb(0x20, 0xFF, 0x00);
-                break;
-        }
-    }
-}
+uint32_t layer_colors[4] = {0x4020FF, 0xFF0010, 0x20FF00, 0x40FFFF};
 
 void keyboard_post_init_user(void) {
-    // Enable the LED layers
-    update_rgb();
-    // rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
-    // rgblight_setrgb(0x40, 0x20, 0xFF);
-    rgblight_setrgb(0x40, 0x20, 0xFF);
+    smoothled_set(layer_colors[0], 1500);
+}
+
+void matrix_scan_user(void) {
+    smoothled_process();
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return taphold_process(keycode, record);
 }
 
-layer_state_t default_layer_state_set_user(layer_state_t state) {
-    // rgblight_set_layer_state(0, layer_state_cmp(state, _MAIN));
-    // rgblight_setrgb(0x40, 0x20, 0xFF);
-    current_layer = get_highest_layer(state);
-    update_rgb();
-    return state;
-}
-
 layer_state_t layer_state_set_user(layer_state_t state) {
-    // rgblight_set_layer_state(1, layer_state_cmp(state, ALPHA));
-    // rgblight_set_layer_state(2, layer_state_cmp(state, BETA));
-    // if (layer_state_cmp(state, ALPHA)) {
-    // } else if (layer_state_cmp(state, BETA)) {
-    //     rgblight_setrgb(0x20, 0xFF, 0x00);
-    // } else {
-    //     rgblight_setrgb(0x40, 0x20, 0xFF);
-    // }
-    current_layer = get_highest_layer(state);
-    update_rgb();
+    uint8_t layer = biton32(state);
+    smoothled_set(layer_colors[layer], 150);
     return state;
 }
 
